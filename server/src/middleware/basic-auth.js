@@ -1,5 +1,5 @@
 'use strict';
-const bcrypt =require('bcryptjs');
+const AuthService = require('../auth/auth-service');
 
 function requireAuth(req, res, next) {
   const authToken = req.get('Authorization') || '';
@@ -24,7 +24,7 @@ function requireAuth(req, res, next) {
       if(!user){
         return res.status(401).json({error: 'Unathorized request'});
       }
-      return bcrypt.compare(tokenPassword, user.password)
+      return AuthService.comparePasswords(tokenPassword, user.password)
         .then(pass => {
           if (!pass) {
             return res.status(401).json({error: 'Unathorized request'});

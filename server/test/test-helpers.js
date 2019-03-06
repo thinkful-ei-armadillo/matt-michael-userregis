@@ -135,7 +135,7 @@ function makeReviewsArray(users, things) {
   ];
 }
 
-function makeExpectedThing(users, thing, reviews=[]) {
+function makeExpectedThing(users, thing, reviews = []) {
   const user = users
     .find(user => user.id === thing.user_id)
 
@@ -164,7 +164,7 @@ function makeExpectedThing(users, thing, reviews=[]) {
 }
 
 function calculateAverageReviewRating(reviews) {
-  if(!reviews.length) return 0
+  if (!reviews.length) return 0
 
   const sum = reviews
     .map(review => review.rating)
@@ -232,8 +232,8 @@ function cleanTables(db) {
   )
 }
 
-function seedUsers(db, users){
-  const preppedUsers=users.map(user=> ({
+function seedUsers(db, users) {
+  const preppedUsers = users.map(user => ({
     ...user,
     password: bcrypt.hashSync(user.password, 1)
   }))
@@ -242,7 +242,7 @@ function seedUsers(db, users){
     .insert(preppedUsers);
 }
 
-function seedThingsTables(db, users, things, reviews=[]) {
+function seedThingsTables(db, users, things, reviews = []) {
   return seedUsers(db, users)
     .then(() =>
       db
@@ -263,9 +263,12 @@ function seedMaliciousThing(db, user, thing) {
     )
 }
 
-function makeAuthHeader(user){
-  const token=Buffer.from(`${user.user_name}:${user.password}`).toString('base64');
-  return `Bearer ${token}`;
+function makeAuthHeader(user, secret = process.env.JWT_SECRET) {
+  const token = jwt.sign({ user_id: user.id }, secret, {
+    subject: user.user_name,
+    algorithm: 'HS256',
+  })
+  return `Bearer ${token}`
 }
 
 module.exports = {
