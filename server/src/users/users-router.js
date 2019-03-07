@@ -1,11 +1,12 @@
 const express = require('express')
 const UserService = require('./users-service')
+const path = require('path') 
 const usersRouter = express.Router()
 const jsonBodyParser = express.json()
 
 usersRouter
   .post('/', jsonBodyParser, (req, res, next) => {
-    const { user_name,password } = req.body
+    const { user_name, password, full_name } = req.body
     const REGEX_UPPER_LOWER_NUMBER_SPECIAL = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&])[\S]+/
 
     for (const field of ['full_name', 'user_name', 'password'])
@@ -25,10 +26,34 @@ usersRouter
       .then(username => {
         if(username)
           res.status(400)
-        res.send('ok')
+        return UserService.hashPassword(password)
+          .then(hashedPassword => {
+            const newUser = {
+              user_name,
+              password: hashedPassword,
+              full_name,
+              
+            }
+            return UserService.insertUser(
+              req.app.get('db'),
+              newUser
+            )
+              .then(user =>{
+                res
+                .status(201)
+                .location(path.posix.join(req.originalUrl, `/${user.id}`))
+                .json(UserService.serializeUser(newUser))
+              })
+          })  
+       
+          .catch(next)
+       
+        })
+         
       })
-      .catch(next)
+
+      
     
-  })
+  
 
 module.exports = usersRouter;
