@@ -102,10 +102,10 @@ describe.only('Users Endpoints', function () {
             .expect(400, {error: 'Password must contain 1 upper case, lower case, number and special character'})
         })
 
-        const testUser = testUsers[0];
+        
 
         it('responds 400 when duplicate usernames', () => {
-          
+          const testUser = testUsers[0];
           const test = {
             user_name: testUser.user_name,
             password: '12asbD!!!dfsfsdsf',
@@ -117,47 +117,48 @@ describe.only('Users Endpoints', function () {
             .expect(400)
         })
 
-        context(`Happy path`, () => {
-          it('responds 201, serialize user, storing bcrypted password', () => {
-            const newUser = {
-              id: 105,
-              user_name: 'test user_name',
-              password: '11AAaa!!',
-              full_name: 'test full_name',
-            }
-            return supertest(app)
-              .post('/api/users')
-              .send(newUser)
-              .expect(201)
-              .expect(res => {
-                expect(res.body).to.have.property('id')
-                expect(res.body.user_name).to.eql(newUser.user_name)
-                expect(res.body.full_name).to.eql(newUser.full_name)
-                expect(res.body.nickname).to.eql('')
-                expect(res.body).to.not.have.property('password')
-                expect(res.headers.location).to.eql(`/api/users/${res.body.id}`)
-               })
-               .expect(res => {
-                 db
-                  .from('thingful_users')
-                  .select('*')
-                  .where({ id: req.body.id})
-                  .first()
-                  .then(row =>{
-                    expect(row.user_name).to.eql(newUser.user_name)
-                    expect(row.full_name).to.eql(newUser.full_name)
-
-                  })
+        it('responds 201, serialize user, storing bcrypted password', () => {
+          const newUser = {
+            user_name: 'test user_name',
+            password: '11AAaa!!',
+            full_name: 'test full_name',
+          }
+          
+          return supertest(app)
+            .post('/api/users')
+            .send(newUser)
+            .expect(201)
+            .expect(res => {
+              expect(res.body).to.have.property('id')
+              expect(res.body.user_name).to.eql(newUser.user_name)
+              expect(res.body.full_name).to.eql(newUser.full_name)
+              expect(res.body).to.not.have.property('password')
+              expect(res.headers.location).to.eql(`/api/users/${res.body.id}`)
+             })
+             .expect(res => {
+               db
+                .from('thingful_users')
+                .select('*')
+                .where({ id: res.body.id})
+                .first()
+                .then(row =>{
+                  expect(row.user_name).to.eql(newUser.user_name)
+                  expect(row.full_name).to.eql(newUser.full_name)
+                  
                   return bcrypt.compare(newUser.password, row.password)
-                    .then(compareMatch =>{
-                      expect(compareMatch).to.be.true
-                    }) 
-               })
-              
-          })
+                  .then(compareMatch =>{
+                    expect(compareMatch).to.be.true
+                  }) 
+                })
+                
+             })
+            
         })
+        
 
       })
     })
+
+
   })
 })
