@@ -85,7 +85,7 @@ describe('Things Endpoints', function() {
     })
   })
 
-  describe.only(`GET /api/things/:thing_id`, () => {
+  describe(`GET /api/things/:thing_id`, () => {
     context(`Given no things`, () => {
       beforeEach('insert things', () =>
       helpers.seedThingsTables(db, testUsers))
